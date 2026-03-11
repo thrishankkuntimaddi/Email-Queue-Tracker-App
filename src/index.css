@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+}
+
+/* Flash animation for newly-live rows */
+@keyframes flash-green {
+  0% { background-color: #fef08a; }
+  100% { background-color: transparent; }
+}
+
+.flash-row {
+  animation: flash-green 2s ease-out forwards;
+}
