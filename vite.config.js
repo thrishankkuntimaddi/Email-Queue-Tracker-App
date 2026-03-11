@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
 export default defineConfig({
+  base: '/Email-Queue-Tracker-App/',   // GitHub Pages repo sub-path
   plugins: [
     react(),
     tailwindcss(),
