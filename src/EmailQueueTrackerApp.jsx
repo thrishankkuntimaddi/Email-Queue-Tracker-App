@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Check, Mail, Clock, Zap, Moon, Sun, Copy, Upload, Download, X, Search, HardDriveDownload } from 'lucide-react';
+import { Check, Mail, Clock, Zap, Moon, Sun, Copy, Upload, Download, X, Search, HardDriveDownload, Pencil } from 'lucide-react';
 
 // ─── Storage keys ────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'email-simple-tracker';
@@ -35,6 +35,8 @@ function lsRemove(key) {
 //   Group 5-6  → System         (rows 09-11: ramadevipurna + chttrixchat)
 //   Group 7    → Testing        (rows 12-21: Chttrixtest0–9)
 //   Group 8+   → Backup         (rows 22-31: Chttrixtest10–19)
+const BACKUP_LABEL = { label: 'Backup', colors: 'bg-slate-200 text-slate-600' };
+
 const GROUP_LABELS = {
   1: { label: 'High Priority', colors: 'bg-red-100 text-red-700' },
   2: { label: 'High Priority', colors: 'bg-red-100 text-red-700' },
@@ -43,21 +45,24 @@ const GROUP_LABELS = {
   5: { label: 'System',       colors: 'bg-violet-100 text-violet-700' },
   6: { label: 'System',       colors: 'bg-violet-100 text-violet-700' },
   7: { label: 'Testing',      colors: 'bg-blue-100 text-blue-700' },
-  8: { label: 'Backup',       colors: 'bg-slate-200 text-slate-600' },
+  8: BACKUP_LABEL,
 };
 
 // Returns a priority label for a row.
 // Prefers the stored `group` field (set during import from separators).
+// Any group number ≥ 8 is treated as Backup (handles unlimited separator groups).
 // Falls back to position-based mapping for rows imported without group info.
 function getPriorityGroup(position, group) {
-  if (group !== undefined && GROUP_LABELS[group]) return GROUP_LABELS[group];
-  // Fallback: derive from sorted position
+  if (group !== undefined) {
+    // Any group number 8 or higher → Backup
+    return GROUP_LABELS[group] ?? BACKUP_LABEL;
+  }
+  // Fallback: derive from sorted position (no upper cap — everything >21 is Backup)
   if (position <= 4)  return GROUP_LABELS[1];
   if (position <= 8)  return GROUP_LABELS[3];
   if (position <= 11) return GROUP_LABELS[5];
   if (position <= 21) return GROUP_LABELS[7];
-  if (position <= 31) return GROUP_LABELS[8];
-  return null;
+  return BACKUP_LABEL; // rows 22+ are always Backup
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -124,6 +129,9 @@ export default function EmailQueueTrackerApp() {
   const [flashRow, setFlashRow]     = useState(null);
   const [copySuccess, setCopySuccess] = useState(false);
   const [tick, setTick] = useState(0);
+  // ── Inline timestamp editing ──────────────────────────────────────────────
+  const [editingRowId, setEditingRowId] = useState(null);
+  const [editingTime, setEditingTime]   = useState('');
 
   const rowRefs    = useRef({});
   const prevLiveRef = useRef({});
@@ -321,10 +329,33 @@ export default function EmailQueueTrackerApp() {
     setInputTime('');
   };
 
+  // ── Inline edit helpers ───────────────────────────────────────────────────
+  const startEdit = (row) => {
+    setEditingRowId(row.id);
+    // Pre-fill with the current value so the user can tweak it easily
+    setEditingTime(row.timestamp === 'LIVE' ? '' : row.timestamp);
+  };
+
+  const saveInlineEdit = (id) => {
+    const val = editingTime.trim();
+    if (!val) return; // don't save empty
+    setRows((prev) =>
+      prev.map((r) => r.id === id ? { ...r, timestamp: val } : r)
+    );
+    setEditingRowId(null);
+    setEditingTime('');
+  };
+
+  const cancelEdit = () => {
+    setEditingRowId(null);
+    setEditingTime('');
+  };
+
   // ── Delete a row ──────────────────────────────────────────────────────────
   const deleteRow = (id) => {
     setRows((prev) => prev.filter((r) => r.id !== id));
     if (usingEmail?.id === id) setUsingEmail(null);
+    if (editingRowId === id) cancelEdit();
   };
 
   // ── Clear all ────────────────────────────────────────────────────────────
@@ -692,25 +723,25 @@ export default function EmailQueueTrackerApp() {
               </div>
             ) : (
               <>
-                {/* Header row — col-span-4 for Email to make room for Priority badge */}
+                {/* Header row */}
                 <div className={`grid grid-cols-12 text-xs font-semibold uppercase tracking-wider px-6 pb-2 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
                   <div className="col-span-1">#</div>
-                  <div className="col-span-4">Email</div>
+                  <div className="col-span-3">Email</div>
                   <div className="col-span-2">Priority</div>
-                  <div className="col-span-2">Status</div>
+                  <div className="col-span-3">Status / Timestamp</div>
                   <div className="col-span-2">Countdown</div>
                   <div className="col-span-1"></div>
                 </div>
 
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {/* FEATURE 3: Render filteredRows (not sorted) — order is preserved from sorted */}
-                  {filteredRows.map((row, index) => {
-                    const highlight  = nextEmail && row.id === nextEmail.id;
-                    const flash      = flashRow === row.id;
-                    const isUsing    = usingEmail?.id === row.id;
-                    // Priority: use stored group if available, else fall back to position
-                    const fullIndex  = sorted.indexOf(row);
-                    const priority   = getPriorityGroup(fullIndex + 1, row.group);
+                  {/* Render filteredRows — order preserved from sorted */}
+                  {filteredRows.map((row) => {
+                    const highlight   = nextEmail && row.id === nextEmail.id;
+                    const flash       = flashRow === row.id;
+                    const isUsing     = usingEmail?.id === row.id;
+                    const isEditing   = editingRowId === row.id;
+                    const fullIndex   = sorted.indexOf(row);
+                    const priority    = getPriorityGroup(fullIndex + 1, row.group);
 
                     return (
                       <div
@@ -722,20 +753,22 @@ export default function EmailQueueTrackerApp() {
                           highlight && dark  ? 'bg-green-950/30' : '',
                           isUsing && !dark   ? 'bg-blue-50' : '',
                           isUsing && dark    ? 'bg-blue-950/20' : '',
+                          isEditing && !dark ? 'bg-violet-50' : '',
+                          isEditing && dark  ? 'bg-violet-950/20' : '',
                           flash              ? 'flash-row' : '',
                         ].filter(Boolean).join(' ')}
                       >
-                        {/* # — shows the position in the FILTERED view */}
+                        {/* # */}
                         <div className={`col-span-1 text-sm font-bold ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
                           {fullIndex + 1}
                         </div>
 
                         {/* Email */}
-                        <div className={`col-span-4 truncate text-sm font-medium ${dark ? 'text-slate-200' : 'text-slate-800'}`}>
+                        <div className={`col-span-3 truncate text-sm font-medium ${dark ? 'text-slate-200' : 'text-slate-800'}`}>
                           {row.email}
                         </div>
 
-                        {/* FEATURE 4: Priority group badge */}
+                        {/* Priority badge */}
                         <div className="col-span-2">
                           {priority ? (
                             <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap ${priority.colors}`}>
@@ -744,25 +777,64 @@ export default function EmailQueueTrackerApp() {
                           ) : null}
                         </div>
 
-                        {/* Status */}
-                        <div className="col-span-2 text-sm">
-                          {row.live ? (
-                            <Badge className="bg-green-600 text-white">LIVE</Badge>
-                          ) : (
-                            <span className={`text-xs ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
-                              {formatDisplay(row.timestamp)}
-                            </span>
-                          )}
-                        </div>
+                        {/* Status / Inline-edit area — spans 3 cols when editing */}
+                        {isEditing ? (
+                          <div className="col-span-5 flex items-center gap-1.5">
+                            <input
+                              autoFocus
+                              type="text"
+                              value={editingTime}
+                              onChange={(e) => setEditingTime(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') saveInlineEdit(row.id);
+                                if (e.key === 'Escape') cancelEdit();
+                              }}
+                              placeholder="e.g. 3/17/2026, 10:35:57 PM  or  LIVE"
+                              className={`flex-1 min-w-0 text-xs px-2 py-1 rounded border outline-none ring-2 ring-violet-400 font-mono ${
+                                dark
+                                  ? 'bg-slate-800 border-slate-600 text-slate-100 placeholder:text-slate-500'
+                                  : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
+                              }`}
+                            />
+                            <button
+                              onClick={() => saveInlineEdit(row.id)}
+                              disabled={!editingTime.trim()}
+                              title="Save timestamp"
+                              className="p-1 rounded bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-40 transition-colors"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={cancelEdit}
+                              title="Cancel"
+                              className={`p-1 rounded transition-colors ${dark ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-400'}`}
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            {/* Status */}
+                            <div className="col-span-2 text-sm">
+                              {row.live ? (
+                                <Badge className="bg-green-600 text-white">LIVE</Badge>
+                              ) : (
+                                <span className={`text-xs ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                  {formatDisplay(row.timestamp)}
+                                </span>
+                              )}
+                            </div>
 
-                        {/* Countdown */}
-                        <div className={`col-span-2 text-sm font-mono font-semibold ${row.live ? 'text-green-500' : 'text-orange-500'}`}>
-                          {row.live ? '✓ READY' : getRemaining(row.timestamp)}
-                        </div>
+                            {/* Countdown */}
+                            <div className={`col-span-2 text-sm font-mono font-semibold ${row.live ? 'text-green-500' : 'text-orange-500'}`}>
+                              {row.live ? '✓ READY' : getRemaining(row.timestamp)}
+                            </div>
+                          </>
+                        )}
 
-                        {/* Action */}
+                        {/* Action column */}
                         <div className="col-span-1 flex items-center gap-1 justify-end">
-                          {row.live && (
+                          {!isEditing && row.live && (
                             <Button
                               size="sm"
                               className="h-7 px-2 text-xs bg-blue-600 hover:bg-blue-700"
@@ -771,13 +843,32 @@ export default function EmailQueueTrackerApp() {
                               Use
                             </Button>
                           )}
-                          <button
-                            onClick={() => deleteRow(row.id)}
-                            className={`p-1 rounded hover:bg-red-100 dark:hover:bg-red-950 text-slate-400 hover:text-red-500 transition-colors`}
-                            title="Remove"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
+                          {!isEditing && (
+                            <button
+                              onClick={() => startEdit(row)}
+                              title="Edit timestamp"
+                              className={`p-1 rounded transition-colors ${
+                                dark
+                                  ? 'hover:bg-violet-900/50 text-slate-500 hover:text-violet-400'
+                                  : 'hover:bg-violet-100 text-slate-400 hover:text-violet-600'
+                              }`}
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          {!isEditing && (
+                            <button
+                              onClick={() => deleteRow(row.id)}
+                              className={`p-1 rounded transition-colors ${
+                                dark
+                                  ? 'hover:bg-red-950 text-slate-500 hover:text-red-400'
+                                  : 'hover:bg-red-100 text-slate-400 hover:text-red-500'
+                              }`}
+                              title="Remove"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     );
