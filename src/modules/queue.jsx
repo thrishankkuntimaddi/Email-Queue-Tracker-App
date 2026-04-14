@@ -373,11 +373,11 @@ export default function QueueModule({
                         <>
                           <div className="col-span-2 text-sm">
                             {row.live
-                              ? <span className="inline-flex items-center gap-1 bg-emerald-500/10 border border-emerald-900/50 rounded-full px-2 py-0.5 text-[10px] font-bold text-emerald-400">LIVE</span>
+                              ? <span className="inline-flex items-center gap-1 bg-indigo-500/10 border border-indigo-700/50 rounded-full px-2 py-0.5 text-[10px] font-bold text-indigo-400">LIVE</span>
                               : <span className="text-xs text-zinc-500 leading-tight">{formatDisplay(row.timestamp)}</span>
                             }
                           </div>
-                          <div className={`col-span-2 text-xs font-mono font-semibold ${row.live ? 'text-emerald-400' : 'text-amber-400'}`}>
+                          <div className={`col-span-2 text-xs font-mono font-semibold ${row.live ? 'text-indigo-400' : 'text-violet-400'}`}>
                             {row.live ? '✓ READY' : getRemaining(row.timestamp)}
                           </div>
                         </>
@@ -432,8 +432,8 @@ export default function QueueModule({
                             </span>
                           )}
                           {row.live
-                            ? <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold bg-emerald-500/10 border border-emerald-900/50 text-emerald-400">LIVE</span>
-                            : <span className="text-[10px] font-mono text-amber-400 font-semibold">{getRemaining(row.timestamp)}</span>
+                            ? <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold bg-indigo-500/10 border border-indigo-700/50 text-indigo-400">LIVE</span>
+                            : <span className="text-[10px] font-mono text-violet-400 font-semibold">{getRemaining(row.timestamp)}</span>
                           }
                         </div>
                       </div>

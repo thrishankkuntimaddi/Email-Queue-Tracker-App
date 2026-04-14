@@ -170,8 +170,8 @@ export default function SettingsModule({ user, syncNow, emails, importEmails, cl
             <p className="text-sm font-medium text-zinc-200 truncate">{user?.email}</p>
             <p className="text-xs text-zinc-600 mt-0.5">
               {user?.emailVerified
-                ? <span className="text-emerald-500">✓ Verified</span>
-                : <span className="text-amber-500">⚠ Not verified</span>}
+                ? <span className="text-indigo-400">✓ Verified</span>
+                : <span className="text-zinc-500">⚠ Not verified</span>}
             </p>
           </div>
         </div>
@@ -291,7 +291,7 @@ export default function SettingsModule({ user, syncNow, emails, importEmails, cl
 
           {/* Clear all queue */}
           {confirmClear && (
-            <div className="flex items-center gap-2 bg-amber-950/30 border border-amber-900/40 rounded-lg px-3 py-2.5 text-xs text-amber-400 mb-2">
+            <div className="flex items-center gap-2 bg-red-950/30 border border-red-900/40 rounded-lg px-3 py-2.5 text-xs text-red-400 mb-2">
               <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
               This will permanently delete all {emails.length} emails from your queue.
             </div>

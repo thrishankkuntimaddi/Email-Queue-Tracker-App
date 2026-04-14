@@ -15,9 +15,9 @@ export default function ReadyModule({ emails, tick, useEmail }) {
       {/* ── Ready to Use ──────────────────────────────────────────────────── */}
       <div>
         {nextFiveLive.length > 0 ? (
-          <div className="bg-zinc-900 border border-emerald-900/40 rounded-xl overflow-hidden">
+          <div className="bg-zinc-900 border border-indigo-900/40 rounded-xl overflow-hidden">
             <div className="px-5 pt-4 pb-3 border-b border-zinc-800">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-2">
                 <Zap className="w-3.5 h-3.5" /> Ready to Use
               </h3>
             </div>
@@ -25,7 +25,7 @@ export default function ReadyModule({ emails, tick, useEmail }) {
               {nextFiveLive.map((r, i) => (
                 <div key={r.id} className="flex items-center justify-between px-5 py-3 gap-3 hover:bg-zinc-800/40 transition-colors">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <span className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-900/50 text-emerald-400 text-[10px] font-bold flex items-center justify-center shrink-0">
+                    <span className="w-5 h-5 rounded-full bg-indigo-500/10 border border-indigo-700/50 text-indigo-400 text-[10px] font-bold flex items-center justify-center shrink-0">
                       {i + 1}
                     </span>
                     <span className="text-sm text-zinc-200 truncate font-medium">{r.email}</span>
@@ -53,7 +53,7 @@ export default function ReadyModule({ emails, tick, useEmail }) {
         {nextFiveCool.length > 0 ? (
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
             <div className="px-5 pt-4 pb-3 border-b border-zinc-800">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-400 flex items-center gap-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-violet-400 flex items-center gap-2">
                 <Clock className="w-3.5 h-3.5" /> Next Unlocking
               </h3>
             </div>
@@ -66,7 +66,7 @@ export default function ReadyModule({ emails, tick, useEmail }) {
                     </span>
                     <span className="text-sm text-zinc-400 truncate">{r.email}</span>
                   </div>
-                  <span className="shrink-0 font-mono text-xs text-amber-400 font-semibold">
+                  <span className="shrink-0 font-mono text-xs text-violet-400 font-semibold">
                     {getRemaining(r.timestamp)}
                   </span>
                 </div>

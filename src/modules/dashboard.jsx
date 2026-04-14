@@ -51,15 +51,15 @@ export default function DashboardModule({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
           icon={Zap}
-          iconBg="bg-emerald-500/10"
-          iconColor="text-emerald-400"
+          iconBg="bg-indigo-500/10"
+          iconColor="text-indigo-400"
           value={liveCount}
           label="LIVE Emails"
         />
         <StatCard
           icon={Clock}
-          iconBg="bg-amber-500/10"
-          iconColor="text-amber-400"
+          iconBg="bg-violet-500/10"
+          iconColor="text-violet-400"
           value={cooldownCount}
           label="On Cooldown"
         />
@@ -72,7 +72,7 @@ export default function DashboardModule({
             {nextUpcoming ? (
               <>
                 <div className="text-sm font-semibold text-zinc-100 truncate">{nextUpcoming.email}</div>
-                <div className="text-xs text-amber-400 font-medium font-mono">
+                <div className="text-xs text-violet-400 font-medium font-mono">
                   {getRemaining(nextUpcoming.timestamp)}
                 </div>
               </>
