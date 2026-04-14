@@ -22,9 +22,12 @@ export function getRemaining(timestamp) {
   const diff = d.getTime() - Date.now()
   if (diff <= 0) return 'READY'
   const total = Math.floor(diff / 1000)
-  const h = Math.floor(total / 3600)
-  const m = Math.floor((total % 3600) / 60)
-  const s = total % 60
+  const days = Math.floor(total / 86400)
+  const h    = Math.floor((total % 86400) / 3600)
+  const m    = Math.floor((total % 3600) / 60)
+  const s    = total % 60
+  // Show days when more than 24h remain — skip seconds for readability
+  if (days > 0) return `${days}d ${h}h ${m}m`
   return `${h}h ${m}m ${s}s`
 }
 
