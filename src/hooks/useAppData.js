@@ -22,21 +22,34 @@ export function useAppData(uid) {
   useEffect(() => {
     if (!uid) return
     let mounted = true
+    // Tracks whether the listener's first snapshot already hydrated state.
+    // Prevents the slower network fetch from clobbering data the listener
+    // already delivered — important on mobile where the cache snapshot fires
+    // before the network round-trip completes.
+    let hydratedByListener = false
 
+    // ── Start the real-time listener IMMEDIATELY (parallel with the fetch) ───
+    // On mobile the IndexedDB cache snapshot fires in <50ms, long before the
+    // network fetch completes. Starting it here (not inside .then()) ensures
+    // data is always surfaced as fast as possible.
+    listenToUserData(uid, (updated) => {
+      if (!mounted) return
+      hydratedByListener = true
+      setEmails(updated.emails        ?? [])
+      setCurrentUsing(updated.currentUsing ?? null)
+      setLoading(false)
+    })
+
+    // ── One-time network fetch as a belt-and-suspenders safety net ───────────
+    // Covers the edge case where the listener's first snapshot is blank
+    // (fresh install, no local IndexedDB doc yet) but the server has data.
     fetchUserData(uid).then(data => {
       if (!mounted) return
-      if (data) {
+      if (data && !hydratedByListener) {
         setEmails(data.emails        ?? [])
         setCurrentUsing(data.currentUsing ?? null)
       }
       setLoading(false)
-
-      // Subscribe for cross-device updates AFTER initial hydration
-      listenToUserData(uid, (updated) => {
-        if (!mounted) return
-        setEmails(updated.emails        ?? [])
-        setCurrentUsing(updated.currentUsing ?? null)
-      })
     })
 
     return () => {

@@ -100,14 +100,28 @@ export async function patchUserData(uid, partial) {
 export function listenToUserData(uid, onUpdate, onError) {
   if (!uid || !db) return () => {}
 
+  // Allow the FIRST snapshot through even if it comes from cache.
+  // Firestore always fires an initial snapshot from IndexedDB before going to
+  // the network — on mobile this is the only way to surface data quickly.
+  // After the first delivery, suppress subsequent fromCache snapshots so stale
+  // IndexedDB state can't overwrite a live multi-device edit.
+  let isFirstSnapshot = true
+
   _unsub = onSnapshot(
     docRef(uid),
     { includeMetadataChanges: true },
     (snap) => {
       if (snap.metadata.hasPendingWrites) return  // echo of our own write
-      if (snap.metadata.fromCache)        return  // stale local data
-      if (!snap.exists())                 return  // doc not yet created
 
+      // Only skip cache snapshots after the first one has already been delivered
+      if (!isFirstSnapshot && snap.metadata.fromCache) return
+
+      if (!snap.exists()) {
+        isFirstSnapshot = false
+        return  // doc not yet created
+      }
+
+      isFirstSnapshot = false
       const data = snap.data()
       _cache = data
       onUpdate(data)

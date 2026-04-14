@@ -8,6 +8,7 @@ import {
   initializeFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
+  persistentSingleTabManager,
 } from 'firebase/firestore'
 
 const firebaseConfig = {
@@ -42,13 +43,20 @@ if (isConfigured) {
     })
 
     // ── Firestore: IndexedDB offline cache ────────────────────────────────────
-    // Ensures data is available instantly on reload (before the network
-    // round-trip) and prevents the stale-cache overwrite on multi-device login.
-    db = initializeFirestore(app, {
-      localCache: persistentLocalCache({
+    // persistentMultipleTabManager uses SharedWorker/BroadcastChannel which can
+    // silently fail in mobile standalone PWA mode. We try it first and fall back
+    // to persistentSingleTabManager for mobile compatibility.
+    let localCache
+    try {
+      localCache = persistentLocalCache({
         tabManager: persistentMultipleTabManager(),
-      }),
-    })
+      })
+    } catch {
+      localCache = persistentLocalCache({
+        tabManager: persistentSingleTabManager(),
+      })
+    }
+    db = initializeFirestore(app, { localCache })
   } catch (e) {
     console.error('[EmailCooldown] Firebase init failed:', e)
   }
