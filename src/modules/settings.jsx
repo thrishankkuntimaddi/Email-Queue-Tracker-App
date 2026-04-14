@@ -170,8 +170,8 @@ export default function SettingsModule({ user, syncNow, emails, importEmails, cl
             <p className="text-sm font-medium text-zinc-200 truncate">{user?.email}</p>
             <p className="text-xs text-zinc-600 mt-0.5">
               {user?.emailVerified
-                ? <span className="text-indigo-400">✓ Verified</span>
-                : <span className="text-zinc-500">⚠ Not verified</span>}
+                ? <span className="text-emerald-500">✓ Verified</span>
+                : <span className="text-amber-500">⚠ Not verified</span>}
             </p>
           </div>
         </div>

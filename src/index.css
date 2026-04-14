@@ -23,7 +23,7 @@
 
 /* ── Flash animation — row just turned LIVE ─────────────────────────────────── */
 @keyframes flash-live {
-  0%   { background-color: rgba(99, 102, 241, 0.14); }
+  0%   { background-color: rgba(52, 211, 153, 0.12); }
   100% { background-color: transparent; }
 }
 .flash-row {
@@ -32,7 +32,7 @@
 
 /* ── Dot-grid background (login page) ──────────────────────────────────────── */
 .dot-grid {
-  background-image: radial-gradient(circle, rgba(99, 102, 241, 0.10) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(52, 211, 153, 0.08) 1px, transparent 1px);
   background-size: 28px 28px;
 }
 
