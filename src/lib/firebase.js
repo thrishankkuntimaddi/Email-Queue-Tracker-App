@@ -1,5 +1,9 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
+import {
+  initializeAuth,
+  indexedDBLocalPersistence,
+  browserLocalPersistence,
+} from 'firebase/auth'
 import {
   initializeFirestore,
   persistentLocalCache,
@@ -25,12 +29,21 @@ let db   = null
 
 if (isConfigured) {
   try {
-    app  = initializeApp(firebaseConfig)
-    auth = getAuth(app)
+    app = initializeApp(firebaseConfig)
 
-    // IndexedDB offline persistence — ensures data is available instantly on
-    // reload (even before the network round-trip completes) and prevents the
-    // "new user" false-positive that wipes Firestore data on second-device login.
+    // ── Auth: explicit persistence chain ─────────────────────────────────────
+    // indexedDBLocalPersistence  → primary: PWA-safe, survives SW updates,
+    //                              browser ITP (Safari), and app reinstalls.
+    // browserLocalPersistence    → fallback: localStorage for older browsers.
+    // Using initializeAuth (not getAuth) locks in the persistence BEFORE any
+    // observer is attached — this is what prevents the random sign-out bug.
+    auth = initializeAuth(app, {
+      persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+    })
+
+    // ── Firestore: IndexedDB offline cache ────────────────────────────────────
+    // Ensures data is available instantly on reload (before the network
+    // round-trip) and prevents the stale-cache overwrite on multi-device login.
     db = initializeFirestore(app, {
       localCache: persistentLocalCache({
         tabManager: persistentMultipleTabManager(),
