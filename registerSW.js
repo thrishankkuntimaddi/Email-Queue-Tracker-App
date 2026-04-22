@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/Email-Queue-Tracker-App/sw.js', { scope: '/Email-Queue-Tracker-App/' })})}
